@@ -1,0 +1,10 @@
+erDiagram
+    USER ||--o{ MACHINE : "owns or manages (as Provider)"
+    MACHINE ||--o{ LISTING : "is offered via"
+    LISTING ||--o{ BOOKING : "is reserved by"
+    USER ||--o{ BOOKING : "initiates (as Buyer)"
+    MACHINE ||--o{ BENCHMARK : "is characterized by"
+    BOOKING ||--o{ PAYMENT : "is settled by"
+    USER ||--o{ PAYMENT : "makes (as Buyer)"
+    BOOKING ||--o{ DATAWIPE : "triggers"
+    MACHINE ||--o{ DATAWIPE : "is sanitized by (target)"

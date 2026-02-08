@@ -1,0 +1,86 @@
+erDiagram
+    direction TB
+    USER {
+        string customer_id PK
+        string email
+        string organization_name
+        boolean is_billing_account
+        datetime signup_date
+    }
+    MACHINE {
+        string hardware_id PK
+        string customer_id FK
+        string gpu_model
+        string cpu_model
+        integer ram_gb
+        string disk_type
+        integer disk_size_gb
+        string network_bandwidth
+        string os
+        string provider_agent_status
+        json health_indicators
+    }
+    BENCHMARK {
+        string benchmark_id PK
+        string hardware_id FK
+        float gpu_throughput_fp16
+        float gpu_throughput_fp32
+        float cpu_score
+        float disk_read_mb_s
+        float disk_write_mb_s
+        float network_bandwidth_gbps
+        datetime collected_at
+        string admin_verification_status
+    }
+    LISTING {
+        string listing_id PK
+        string hardware_id FK
+        float price_hour
+        float price_day
+        float price_week
+        string currency
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+    BOOKING {
+        string booking_id PK
+        string listing_id FK
+        string hardware_id FK
+        string buyer_id FK
+        datetime start_timestamp
+        datetime end_timestamp
+        datetime created_at
+        string booking_status
+    }
+    PAYMENT {
+        string payment_id PK
+        string booking_id FK
+        string hardware_id FK
+        string payer_id FK
+        string provider_id FK
+        decimal amount_total
+        string currency
+        string payment_status
+        datetime timestamp
+        string invoice_number
+    }
+    DATAWIPE {
+        string wipe_id PK
+        string hardware_id FK
+        string booking_id FK
+        datetime timestamp
+        string wipe_method_executed
+        string status
+        string wipe_evidence_uri
+    }
+    USER ||--o{ MACHINE : "owns or manages (as Provider)"
+    MACHINE ||--o{ LISTING : "is offered via"
+    LISTING ||--o{ BOOKING : "is reserved by"
+    USER ||--o{ BOOKING : "initiates (as Buyer)"
+    MACHINE ||--o{ BENCHMARK : "is characterized by"
+    BOOKING ||--o{ DATAWIPE : "triggers"
+    BOOKING ||--o{ PAYMENT : "is settled by"
+    USER ||--o{ PAYMENT : "makes (as Buyer)"
+    USER ||--o{ PAYMENT : "receives (as Provider)"
+    DATAWIPE }o--|| MACHINE : "sanitizes"

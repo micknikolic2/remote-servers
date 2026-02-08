@@ -1,0 +1,92 @@
+erDiagram
+    USERS {
+        UUID customer_id PK
+        TEXT email
+        TEXT organization_name
+        BOOLEAN is_billing_account
+        TIMESTAMP signup_date
+    }
+
+    MACHINES {
+        UUID hardware_id PK
+        UUID customer_id FK
+        TEXT gpu_model
+        TEXT cpu_model
+        INTEGER ram_gb
+        TEXT disk_type
+        INTEGER disk_size_gb
+        TEXT network_bandwidth
+        TEXT os
+        TEXT provider_agent_status
+        JSONB health_indicators
+    }
+
+    LISTINGS {
+        UUID listing_id PK
+        UUID hardware_id FK
+        NUMERIC price_hour
+        NUMERIC price_day
+        NUMERIC price_week
+        CHAR(3) currency
+        TEXT status
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    BOOKINGS {
+        UUID booking_id PK
+        UUID listing_id FK
+        UUID hardware_id FK
+        UUID buyer_id FK
+        TIMESTAMP start_timestamp
+        TIMESTAMP end_timestamp
+        TIMESTAMP created_at
+        TEXT booking_status
+    }
+
+    BENCHMARKS {
+        UUID benchmark_id PK
+        UUID hardware_id FK
+        NUMERIC gpu_throughput_fp16
+        NUMERIC gpu_throughput_fp32
+        NUMERIC cpu_score
+        NUMERIC disk_read_mb_s
+        NUMERIC disk_write_mb_s
+        NUMERIC network_bandwidth_gbps
+        TIMESTAMP collected_at
+        TEXT admin_verification_status
+        UUID verified_by_admin_id FK
+    }
+
+    PAYMENTS {
+        UUID payment_id PK
+        UUID booking_id FK
+        UUID hardware_id FK
+        UUID payer_id FK
+        UUID provider_id FK
+        NUMERIC amount_total
+        CHAR(3) currency
+        TEXT payment_status
+        TIMESTAMP timestamp
+        TEXT invoice_number
+    }
+
+    DATA_WIPES {
+        UUID wipe_id PK
+        UUID hardware_id FK
+        UUID booking_id FK
+        TIMESTAMP timestamp
+        TEXT wipe_method_executed
+        TEXT status
+        TEXT wipe_evidence_uri
+    }
+
+    USERS ||--o{ MACHINES : owns
+    USERS ||--o{ BOOKINGS : makes
+    USERS ||--o{ PAYMENTS : pays
+    MACHINES ||--o{ LISTINGS : exposes
+    LISTINGS ||--o{ BOOKINGS : has
+    MACHINES ||--o{ BENCHMARKS : is_measured_by
+    BOOKINGS ||--o{ PAYMENTS : settles
+    BOOKINGS ||--o{ DATA_WIPES : triggers
+    MACHINES ||--o{ DATA_WIPES : targets

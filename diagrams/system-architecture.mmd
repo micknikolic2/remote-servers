@@ -1,0 +1,87 @@
+flowchart LR
+
+    %% --- Client Portals ---
+    subgraph Clients
+        B[Buyer Portal]
+        P[Provider Portal]
+        A[Administrator Portal]
+        OA[Org Admin Portal]
+    end
+
+    %% --- Secure Access Layer ---
+    subgraph SecureAccess [Secure Access Layer]
+        WG[WireGuard VPN Gateway]
+        SSH[SSH Key Management]
+    end
+
+    %% --- Backend Control Plane ---
+    subgraph ControlPlane [Control Plane Backend APIs]
+        APIGW[API Gateway]
+
+        AUTH[Authentication Service]
+        LIST[Listings Service]
+        BOOK[Booking Service]
+        BILL[Billing Service]
+        BENCH[Benchmarking Service]
+        COMP[Compliance Service]
+        ADMIN[Admin & Moderation Service]
+        JOBS[Async Jobs / Queue Workers]
+    end
+
+    %% --- Data Plane ---
+    subgraph DataPlane [Data Plane]
+        DB[(PostgreSQL)]
+        OBJ[(Object Storage)]
+        QUE[(Message Queue)]
+        PAY[(Payment Processor)]
+    end
+
+    %% --- Provider Host ---
+    subgraph ProviderHost [Provider Host]
+        AGENT[Provider Agent]
+        EXPORT[Metrics Exporter]
+    end
+
+    %% --- Client to API Gateway ---
+    B -->|HTTPS| APIGW
+    P -->|HTTPS| APIGW
+    A -->|HTTPS| APIGW
+    OA -->|HTTPS| APIGW
+
+    %% --- Backend Services behind API Gateway ---
+    APIGW --> AUTH
+    APIGW --> LIST
+    APIGW --> BOOK
+    APIGW --> BILL
+    APIGW --> BENCH
+    APIGW --> COMP
+    APIGW --> ADMIN
+
+    %% --- Backend to Data Plane ---
+    AUTH --- DB
+    LIST --- DB
+    BOOK --- DB
+    BILL --- DB
+    BENCH --- OBJ
+    COMP --- OBJ
+
+    BILL --> PAY
+
+    %% --- Jobs and Queue ---
+    JOBS <--> QUE
+
+    %% --- Provider Agent Interactions ---
+    AGENT <--> JOBS
+    AGENT -->|Callbacks| COMP
+    AGENT -->|Provisioning| SSH
+
+    %% --- Observational data from provider host ---
+    EXPORT -->|observational metrics| OBJ
+
+    %% --- Network and VPN Path ---
+    Clients -->|VPN Tunnel| WG
+    WG <--> AGENT
+
+    %% --- Styling (external service) ---
+    classDef external fill:#fff7f7,stroke:#cc0000,stroke-width:2px;
+    class PAY external;

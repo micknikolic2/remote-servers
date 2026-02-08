@@ -1,0 +1,328 @@
+classDiagram
+%% =========================================================
+%% Remote Servers Marketplace - Backend Class Diagram (FastAPI)
+%% =========================================================
+
+%% ===== Core Application =====
+class FastAPIApp {
+  +include_router()
+  +run()
+}
+
+%% ===== Routers (API Layer) =====
+class AuthRouter {
+  +signup()
+  +login()
+  +get_current_user()
+}
+
+class UsersRouter {
+  +get_me()
+  +get_user()
+}
+
+class ListingsRouter {
+  +list_listings()
+  +create_listing()
+  +get_listing()
+}
+
+class BookingsRouter {
+  +list_bookings()
+  +create_booking()
+  +get_booking()
+}
+
+class PaymentsRouter {
+  +list_payments()
+  +get_payment()
+}
+
+class BenchmarksRouter {
+  +list_benchmarks()
+  +get_benchmark()
+}
+
+class DataWipesRouter {
+  +list_data_wipes()
+  +get_data_wipe()
+}
+
+%% ===== Services (Application / Domain Logic) =====
+class AuthService {
+  +signup(data)
+  +login(credentials)
+  +validate_token(token)
+}
+
+class UsersService {
+  +get_current_user()
+  +get_user_by_id(id)
+}
+
+class ListingsService {
+  +create_listing(data)
+  +get_listing(id)
+  +list_active_listings()
+}
+
+class BookingsService {
+  +create_booking(data)
+  +get_booking(id)
+  +list_bookings_for_user(user)
+}
+
+class PaymentsService {
+  +list_payments_for_booking(booking)
+  +get_payment(id)
+}
+
+class BenchmarksService {
+  +list_benchmarks_for_machine(machine)
+  +get_benchmark(id)
+}
+
+class DataWipesService {
+  +list_wipes_for_machine(machine)
+  +list_wipes_for_booking(booking)
+  +get_wipe(id)
+}
+
+%% ===== Repositories (Persistence) =====
+class UserRepository {
+  +get_by_id(id)
+  +get_by_email(email)
+  +create(user)
+}
+
+class MachineRepository {
+  +get_by_id(id)
+  +list_by_owner(user)
+  +create(machine)
+}
+
+class ListingRepository {
+  +get_by_id(id)
+  +list_active()
+  +create(listing)
+}
+
+class BookingRepository {
+  +get_by_id(id)
+  +list_by_user(user)
+  +create(booking)
+}
+
+class PaymentRepository {
+  +get_by_id(id)
+  +list_by_booking(booking)
+  +create(payment)
+}
+
+class BenchmarkRepository {
+  +get_by_id(id)
+  +list_by_machine(machine)
+  +create(benchmark)
+}
+
+class DataWipeRepository {
+  +get_by_id(id)
+  +list_by_machine(machine)
+  +list_by_booking(booking)
+  +create(wipe)
+}
+
+%% ===== Domain Models (SQLAlchemy ORM) =====
+class UserModel {
+  +customer_id: UUID
+  +email: str
+  +organization_name: str
+  +is_billing_account: bool
+  +signup_date: datetime
+}
+
+class MachineModel {
+  +hardware_id: UUID
+  +customer_id: UUID
+  +gpu_model: str
+  +cpu_model: str
+  +ram_gb: int
+  +disk_type: str
+  +disk_size_gb: int
+  +network_bandwidth: str
+  +os: str
+  +provider_agent_status: str
+  +health_indicators: JSON
+}
+
+class ListingModel {
+  +listing_id: UUID
+  +hardware_id: UUID
+  +price_hour: Decimal
+  +price_day: Decimal
+  +price_week: Decimal
+  +currency: str
+  +status: str
+  +created_at: datetime
+  +updated_at: datetime
+}
+
+class BookingModel {
+  +booking_id: UUID
+  +listing_id: UUID
+  +hardware_id: UUID
+  +buyer_id: UUID
+  +start_timestamp: datetime
+  +end_timestamp: datetime
+  +created_at: datetime
+  +booking_status: str
+}
+
+class BenchmarkModel {
+  +benchmark_id: UUID
+  +hardware_id: UUID
+  +gpu_throughput_fp16: Decimal
+  +gpu_throughput_fp32: Decimal
+  +cpu_score: Decimal
+  +disk_read_mb_s: Decimal
+  +disk_write_mb_s: Decimal
+  +network_bandwidth_gbps: Decimal
+  +collected_at: datetime
+  +admin_verification_status: str
+}
+
+class PaymentModel {
+  +payment_id: UUID
+  +booking_id: UUID
+  +hardware_id: UUID
+  +payer_id: UUID
+  +provider_id: UUID
+  +amount_total: Decimal
+  +currency: str
+  +payment_status: str
+  +timestamp: datetime
+  +invoice_number: str
+}
+
+class DataWipeModel {
+  +wipe_id: UUID
+  +hardware_id: UUID
+  +booking_id: UUID
+  +timestamp: datetime
+  +wipe_method_executed: str
+  +status: str
+  +wipe_evidence_uri: str
+}
+
+%% ===== Schemas (Pydantic) =====
+class UserCreate {
+  +email: str
+  +password: str
+  +role: str
+}
+
+class UserRead {
+  +customer_id: UUID
+  +email: str
+  +organization_name: str
+  +is_billing_account: bool
+}
+
+class ListingCreate {
+  +hardware_id: UUID
+  +price_hour: Decimal
+  +price_day: Decimal
+  +price_week: Decimal
+}
+
+class ListingRead {
+  +listing_id: UUID
+  +hardware_id: UUID
+  +price_hour: Decimal
+  +price_day: Decimal
+  +price_week: Decimal
+  +status: str
+}
+
+class BookingCreate {
+  +listing_id: UUID
+  +start_timestamp: datetime
+  +end_timestamp: datetime
+}
+
+class BookingRead {
+  +booking_id: UUID
+  +listing_id: UUID
+  +hardware_id: UUID
+  +buyer_id: UUID
+  +start_timestamp: datetime
+  +end_timestamp: datetime
+  +booking_status: str
+}
+
+%% ===== Integrations =====
+class SupabaseAuthClient {
+  +signup(email, password, role)
+  +login(email, password)
+  +get_user_from_token(token)
+}
+
+%% ===== Relationships =====
+
+FastAPIApp --> AuthRouter
+FastAPIApp --> UsersRouter
+FastAPIApp --> ListingsRouter
+FastAPIApp --> BookingsRouter
+FastAPIApp --> PaymentsRouter
+FastAPIApp --> BenchmarksRouter
+FastAPIApp --> DataWipesRouter
+
+AuthRouter --> AuthService
+UsersRouter --> UsersService
+ListingsRouter --> ListingsService
+BookingsRouter --> BookingsService
+PaymentsRouter --> PaymentsService
+BenchmarksRouter --> BenchmarksService
+DataWipesRouter --> DataWipesService
+
+AuthService --> SupabaseAuthClient
+AuthService --> UserRepository
+
+UsersService --> UserRepository
+ListingsService --> ListingRepository
+ListingsService --> MachineRepository
+BookingsService --> BookingRepository
+BookingsService --> ListingRepository
+BookingsService --> PaymentRepository
+PaymentsService --> PaymentRepository
+BenchmarksService --> BenchmarkRepository
+BenchmarksService --> MachineRepository
+DataWipesService --> DataWipeRepository
+DataWipesService --> MachineRepository
+DataWipesService --> BookingRepository
+
+UserRepository --> UserModel
+MachineRepository --> MachineModel
+ListingRepository --> ListingModel
+BookingRepository --> BookingModel
+PaymentRepository --> PaymentModel
+BenchmarkRepository --> BenchmarkModel
+DataWipeRepository --> DataWipeModel
+
+AuthRouter --> UserCreate
+UsersRouter --> UserRead
+
+ListingsRouter --> ListingCreate
+ListingsRouter --> ListingRead
+
+BookingsRouter --> BookingCreate
+BookingsRouter --> BookingRead
+
+ListingModel --> MachineModel : "hardware_id FK"
+BookingModel --> ListingModel : "listing_id FK"
+BookingModel --> UserModel : "buyer_id FK"
+BenchmarkModel --> MachineModel : "hardware_id FK"
+PaymentModel --> BookingModel : "booking_id FK"
+PaymentModel --> UserModel : "payer_id / provider_id FK"
+DataWipeModel --> MachineModel : "hardware_id FK"
+DataWipeModel --> BookingModel : "booking_id FK"
